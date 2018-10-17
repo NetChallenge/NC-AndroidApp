@@ -4,10 +4,12 @@ buildscript {
     repositories {
         jcenter()
         google()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.google.gms:google-services:4.1.0'
     }
 }
 
@@ -16,19 +18,16 @@ allprojects {
         flatDir {
             dirs 'libs'
         }
+        jcenter()
+        google()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     }
 }
 
 apply plugin: 'com.android.application'
-
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation(name: 'VuforiaWrapper', ext:'aar')
-}
-
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion 16
@@ -39,6 +38,16 @@ android {
         }
         versionCode 1
         versionName '2.8'
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                // TODO:
+                // includeCompileClasspath should be set to false in future versions, since this option is deprecated and will be removed.
+                // This is to increase speed of compilation: https://developer.android.com/studio/build/gradle-plugin-3-0-0-migration.html?utm_source=android-studio#annotationProcessor_config
+                // But when it's set to false be wary of any NullPointerException errors it may cause because of ButterKnife's @InjectView.
+                includeCompileClasspath true
+            }
+        }
     }
 
     lintOptions {
@@ -70,3 +79,17 @@ android {
     }
 
 }
+
+apply plugin: 'com.google.gms.google-services'
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation(name: 'VuforiaWrapper', ext:'aar')
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.google.android.gms:play-services-auth:15.0.1'
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+    implementation "info.kimjihyok:voice-ripple-record-button:0.1.3"
+
+}
+

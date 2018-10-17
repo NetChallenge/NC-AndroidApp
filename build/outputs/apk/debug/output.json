@@ -1,1 +1,1 @@
-[{"outputType":{"type":"APK"},"apkInfo":{"type":"MAIN","splits":[],"versionCode":1},"path":"ARProject-debug.apk","properties":{"packageId":"com.vuforia.samples.ARVR","split":"","minSdkVersion":"16"}}]
+[{"outputType":{"type":"APK"},"apkInfo":{"type":"MAIN","splits":[],"versionCode":1,"versionName":"2.8","enabled":true,"outputFile":"ARProject-debug.apk","fullName":"debug","baseName":"debug"},"path":"ARProject-debug.apk","properties":{}}]
