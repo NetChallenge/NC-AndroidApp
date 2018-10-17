@@ -1,4 +1,0 @@
-#Wed Oct 17 16:34:39 KST 2018
-base.0=D\:\\android\\androidProject\\NetChallenge\\ARProject\\build\\intermediates\\transforms\\dexMerger\\debug\\0
-path.0=classes.dex
-renamed.0=classes.dex
