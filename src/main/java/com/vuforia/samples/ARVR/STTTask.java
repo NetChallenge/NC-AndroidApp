@@ -1,5 +1,6 @@
 package com.vuforia.samples.ARVR;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -13,7 +14,7 @@ import java.nio.ByteBuffer;
 
 public class STTTask extends AsyncTask<Void, Void, STTManager.STT_Err>{
     private static String TAG = "STTTask";
-    private Context context;
+    private Activity activity;
     private UnityPlayer unityPlayer;
     private STTManager sttManager;
 
@@ -59,8 +60,8 @@ public class STTTask extends AsyncTask<Void, Void, STTManager.STT_Err>{
         }
     };
 
-    public STTTask(Context context, UnityPlayer unityPlayer, STTManager sttManager) {
-        this.context = context;
+    public STTTask(Activity activity, UnityPlayer unityPlayer, STTManager sttManager) {
+        this.activity = activity;
         this.unityPlayer = unityPlayer;
         this.sttManager = sttManager;
     }
@@ -86,16 +87,23 @@ public class STTTask extends AsyncTask<Void, Void, STTManager.STT_Err>{
                 break;
             case SOCK_INIT_ERR:
                 Log.d(TAG, "socket init error");
-                Toast.makeText(context, "socket init error", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, "네트워크 연결에 실패하였습니다. 다시 시도해주세요.", Toast.LENGTH_LONG).show();
+                activity.finish();
                 break;
             case AUDIO_INIT_ERR:
                 Log.d(TAG, "audio init error");
-                Toast.makeText(context, "audio init error", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, "오디오가 동작하지 않습니다. 다시 시도해주세요.", Toast.LENGTH_LONG).show();
+                activity.finish();
+                break;
+            case AUTH_ERR:
+                Log.d(TAG, "auth error");
+                Toast.makeText(activity, "권한이 없습니다. 다시 시도해주세요.", Toast.LENGTH_LONG).show();
+                activity.finish();
                 break;
             case INIT_SUCCESS:
                 sttManager.start();
                 Log.d(TAG, "STT Start");
-                Toast.makeText(context, "STT Start", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(activity, "STT Start", Toast.LENGTH_SHORT).show();
                 break;
         }
     }

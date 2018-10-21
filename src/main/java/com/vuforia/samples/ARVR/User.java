@@ -2,6 +2,7 @@ package com.vuforia.samples.ARVR;
 
 public class User {
     private String userToken;
+    private String userEmail;
 
     static User currentUser = null;
     static synchronized User getCurrentUser() {
@@ -16,5 +17,13 @@ public class User {
 
     public void setUserToken(String userToken) {
         this.userToken = userToken;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 }

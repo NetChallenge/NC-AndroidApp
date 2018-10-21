@@ -13,6 +13,7 @@ public class STTManager {
     public enum STT_Err {
         INIT_SUCCESS,
         SOCK_INIT_ERR,
+        AUTH_ERR,
         AUDIO_INIT_ERR,
         ALREADY_INIT,
         START_SUCCESS,
@@ -64,6 +65,11 @@ public class STTManager {
 
         if(!sockClient.connect())
             return STT_Err.SOCK_INIT_ERR;
+
+        sockClient.write(User.getCurrentUser().getUserToken().getBytes());
+        byte[] result = sockClient.read();
+        if(result[0] == 0)
+            return STT_Err.AUTH_ERR;
 
         //initialize audio
         rawAudioStream = new RawAudioStream(

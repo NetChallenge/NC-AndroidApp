@@ -2,6 +2,7 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/white"
     android:layout_height="match_parent">
     <ImageButton
         android:id="@+id/register_voice_back"
@@ -17,19 +18,18 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="49dp"
+        android:layout_marginTop="100dp"
         android:text="목소리를 녹음해주세요."
-        android:textSize="19sp"
+        android:textSize="24sp"
         android:textColor="#000000"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/register_face_imageview"/>
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <info.kimjihyok.ripplelibrary.VoiceRippleView
         android:id="@+id/register_voice_rippleview"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        android:background="@drawable/imageview_register_image"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"

@@ -80,6 +80,16 @@ public class SocketClient extends Thread {
         }
     }
 
+    public byte[] read() {
+        try {
+            sockIn.read(readBuf);
+
+            return readBuf;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     @Override
     public void run() {

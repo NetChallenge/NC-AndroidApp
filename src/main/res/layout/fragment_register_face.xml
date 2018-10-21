@@ -2,17 +2,19 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/white"
     android:layout_height="match_parent">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="49dp"
+        android:layout_marginTop="100dp"
         android:text="사진을 등록해주세요."
-        android:textSize="19sp"
+        android:textSize="24sp"
         android:textColor="#000000"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/register_face_imageview"/>
+        app:layout_constraintTop_toTopOf="parent"/>
+<!--
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -23,6 +25,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/register_face_imageview"/>
+-->
 
     <ImageView
         android:id="@+id/register_face_imageview"
@@ -33,6 +36,19 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <ImageView
+        android:id="@+id/register_face_imageview_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:src="@drawable/icon_add_picture"
+        app:layout_constraintLeft_toLeftOf="@+id/register_face_imageview"
+        app:layout_constraintRight_toRightOf="@+id/register_face_imageview"
+        app:layout_constraintTop_toTopOf="@+id/register_face_imageview"
+        app:layout_constraintBottom_toBottomOf="@+id/register_face_imageview"/>
+
+
 
     <ImageButton
         android:id="@+id/register_face_next"

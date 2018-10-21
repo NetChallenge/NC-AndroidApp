@@ -1,21 +1,31 @@
 package com.vuforia.samples.ARVR;
 
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.vuforia.samples.network.NCARApiRequest;
+
 import java.io.File;
-import java.io.IOException;
 
 import info.kimjihyok.ripplelibrary.Rate;
 import info.kimjihyok.ripplelibrary.VoiceRippleView;
+import info.kimjihyok.ripplelibrary.renderer.Renderer;
+import info.kimjihyok.ripplelibrary.renderer.TimerCircleRippleRenderer;
 
 public class RegisterVoiceFragment extends Fragment implements View.OnClickListener {
     private VoiceRippleView rippleView;
+    private ImageButton completeBtn;
     private NCARProgressDialog dialog;
     private File audioFile;
 
@@ -25,31 +35,81 @@ public class RegisterVoiceFragment extends Fragment implements View.OnClickListe
         View view = inflater.inflate(R.layout.fragment_register_voice, null);
 
         rippleView = view.findViewById(R.id.register_voice_rippleview);
+        rippleView.setRecordDrawable(ContextCompat.getDrawable(getContext(), R.drawable.record), ContextCompat.getDrawable(getContext(), R.drawable.recording));
+        rippleView.setIconSize(30);
+        rippleView.setOnClickListener(this);
+
+        Renderer currentRenderer = new TimerCircleRippleRenderer(getDefaultRipplePaint(), getDefaultRippleBackgroundPaint(), getButtonPaint(), getArcPaint(), 10000.0, 0.0);
+        if (currentRenderer instanceof TimerCircleRippleRenderer) {
+            ((TimerCircleRippleRenderer) currentRenderer).setStrokeWidth(20);
+        }
+        rippleView.setRenderer(currentRenderer);
+
+        rippleView.setRippleColor(ContextCompat.getColor(getContext(), R.color.blue_grey_500));
         rippleView.setRippleSampleRate(Rate.LOW);
         rippleView.setRippleDecayRate(Rate.HIGH);
         rippleView.setBackgroundRippleRatio(1.4);
 
-        audioFile = new File(getContext().getCacheDir(), "audio");
+        audioFile = new File(Environment.getExternalStorageDirectory()+"/audio.aac");
         rippleView.setMediaRecorder(new MediaRecorder());
         rippleView.setOutputFile(audioFile.getAbsolutePath());
         rippleView.setAudioSource(MediaRecorder.AudioSource.MIC);
-        rippleView.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
+        rippleView.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         rippleView.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
-        rippleView.setOnClickListener(this);
-
+        completeBtn = view.findViewById(R.id.register_voice_complete);
+        completeBtn.setOnClickListener(this);
+        completeBtn.setVisibility(View.GONE);
         view.findViewById(R.id.register_voice_back).setOnClickListener(this);
-        view.findViewById(R.id.register_voice_complete).setOnClickListener(this);
 
         dialog = new NCARProgressDialog(getContext());
         return view;
     }
 
+    private Paint getArcPaint() {
+        Paint paint = new Paint();
+        paint.setColor(ContextCompat.getColor(getContext(), R.color.temp_color));
+        paint.setStrokeWidth(20);
+        paint.setAntiAlias(true);
+        paint.setStrokeCap(Paint.Cap.SQUARE);
+        paint.setStyle(Paint.Style.STROKE);
+        return paint;
+    }
+    private Paint getDefaultRipplePaint() {
+        Paint ripplePaint = new Paint();
+        ripplePaint.setStyle(Paint.Style.FILL);
+        ripplePaint.setColor(ContextCompat.getColor(getContext(), R.color.blue_grey_500));
+        ripplePaint.setAntiAlias(true);
+
+        return ripplePaint;
+    }
+
+    private Paint getDefaultRippleBackgroundPaint() {
+        Paint rippleBackgroundPaint = new Paint();
+        rippleBackgroundPaint.setStyle(Paint.Style.FILL);
+        rippleBackgroundPaint.setColor((ContextCompat.getColor(getContext(), R.color.blue_grey_500) & 0x00FFFFFF) | 0x40000000);
+        rippleBackgroundPaint.setAntiAlias(true);
+
+        return rippleBackgroundPaint;
+    }
+
+    private Paint getButtonPaint() {
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setColor(Color.WHITE);
+        paint.setStyle(Paint.Style.FILL);
+        return paint;
+    }
+
     private void recording() {
-        if(rippleView.isRecording())
+        if(rippleView.isRecording()) {
             rippleView.stopRecording();
-        else
+            completeBtn.setVisibility(View.VISIBLE);
+        }
+        else {
             rippleView.startRecording();
+            completeBtn.setVisibility(View.GONE);
+        }
     }
 
     private void back() {
@@ -57,10 +117,31 @@ public class RegisterVoiceFragment extends Fragment implements View.OnClickListe
     }
 
     private void complete() {
-        if(audioFile.exists())
-            NCARApiRequest.saveAudio(getContext(), User.getCurrentUser().getUserToken(), audioFile);
-        else
+        dialog.showProgressDialog();
+        if(audioFile.exists()) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dialog.hideProgressDialog();
+                    if(NCARApiRequest.saveAudio(getContext(), User.getCurrentUser().getUserEmail(), audioFile) == -1) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getContext(), "네트워크가 불안정합니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        return;
+                    }
+
+                    startActivity(new Intent(getActivity(), RoomActivity.class));
+                    getActivity().finish();
+                }
+            }).start();
+        }
+        else {
+            dialog.hideProgressDialog();
             Toast.makeText(getContext(), "오디오를 녹음해주세요.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

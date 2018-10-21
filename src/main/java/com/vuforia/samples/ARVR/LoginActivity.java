@@ -2,8 +2,10 @@ package com.vuforia.samples.ARVR;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.UiThread;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -18,7 +20,7 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.vuforia.samples.ARVR.R;
+import com.vuforia.samples.network.NCARApiRequest;
 
 /**
  * Activity to demonstrate basic retrieval of the Google user's ID, email address, and basic
@@ -50,6 +52,7 @@ public class LoginActivity extends AppCompatActivity implements
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.server_client_id))
                 .requestEmail()
                 .build();
         // [END configure_signin]
@@ -74,9 +77,15 @@ public class LoginActivity extends AppCompatActivity implements
         // [START on_start_sign_in]
         // Check for existing Google Sign In account, if the user is already signed in
         // the GoogleSignInAccount will be non-null.
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        updateUI(account);
+        //GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        //updateUI(account);
         // [END on_start_sign_in]
+        mGoogleSignInClient.silentSignIn().addOnCompleteListener(this, new OnCompleteListener<GoogleSignInAccount>() {
+            @Override
+            public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
+                handleSignInResult(task);
+            }
+        });
     }
 
     // [START onActivityResult]
@@ -151,24 +160,36 @@ public class LoginActivity extends AppCompatActivity implements
 
             //findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             //findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
-            User currentUser = User.getCurrentUser();
+            final User currentUser = User.getCurrentUser();
             currentUser.setUserToken(account.getIdToken());
-            int result = NCARApiRequest.checkIsRegister(currentUser.getUserToken());
-            if(result == 1) {
-                startActivity(new Intent(LoginActivity.this, RoomActivity.class));
-                finish();
-            }
-            else if(result == -1) {
-                //findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-                //findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
-                Toast.makeText(LoginActivity.this, "네트워크가 불안정합니다. 다시 시도해주세요.", Toast.LENGTH_LONG).show();
-            }
-            else {
-                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                intent.putExtra("register", result);
-                startActivity(intent);
-                finish();
-            }
+            currentUser.setUserEmail(account.getEmail());
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    int result = NCARApiRequest.checkIsRegister(currentUser.getUserEmail());
+                    if(result == 0) {
+                        startActivity(new Intent(LoginActivity.this, RoomActivity.class));
+                        finish();
+                    }
+                    else if(result == -1) {
+                        //findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+                        //findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(LoginActivity.this, "네트워크가 불안정합니다. 다시 시도해주세요.", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                    else {
+                        Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                        intent.putExtra("register", result);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            }).start();
         } else {
             mStatusTextView.setText(R.string.signed_out);
 
