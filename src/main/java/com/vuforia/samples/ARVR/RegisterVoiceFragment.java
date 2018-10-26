@@ -122,25 +122,36 @@ public class RegisterVoiceFragment extends Fragment implements View.OnClickListe
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    dialog.hideProgressDialog();
-                    if(NCARApiRequest.saveAudio(getContext(), User.getCurrentUser().getUserEmail(), audioFile) == -1) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(getContext(), "네트워크가 불안정합니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        return;
+                    NCARApiRequest.NCARApi_Err result = NCARApiRequest.saveAudio(getContext(), User.getCurrentUser().getUserEmail(), audioFile);
+                    switch(result) {
+                        case SUCCESS:
+                            startActivity(new Intent(getActivity(), RoomActivity.class));
+                            getActivity().finish();
+                            break;
+                        case NETWORK_ERR:
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getContext(), R.string.ncar_network_err, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            break;
+                        case UNKNOWN_ERR:
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getContext(), R.string.ncar_unknown_err, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            break;
                     }
-
-                    startActivity(new Intent(getActivity(), RoomActivity.class));
-                    getActivity().finish();
+                    dialog.hideProgressDialog();
                 }
             }).start();
         }
         else {
             dialog.hideProgressDialog();
-            Toast.makeText(getContext(), "오디오를 녹음해주세요.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), R.string.ncar_audio_not_found_err, Toast.LENGTH_SHORT).show();
         }
     }
 

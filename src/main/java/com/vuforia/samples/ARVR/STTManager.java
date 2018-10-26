@@ -52,15 +52,15 @@ public class STTManager {
         this.onReadListener = onReadListener;
     }
 
-    public STT_Err initialize() {
+    public STT_Err initialize(STTServerOpts sttOpts) {
         if(isInit)
             return STT_Err.ALREADY_INIT;
 
         //initialize socket
         sockClient = new SocketClient(
-                STTServerOpts.getIp(),
-                STTServerOpts.getPort(),
-                STTServerOpts.getMaxReadSize(),
+                sttOpts.getIp(),
+                sttOpts.getPort(),
+                sttOpts.getMaxReadSize(),
                 sockListener);
 
         if(!sockClient.connect())

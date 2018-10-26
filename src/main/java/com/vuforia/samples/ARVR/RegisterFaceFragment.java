@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,60 +69,88 @@ public class RegisterFaceFragment extends Fragment implements View.OnClickListen
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String result = NCARApiRequest.detectFace(getContext(), User.getCurrentUser().getUserToken(), scaledBitmap);
-                if(result == null) {
-                    dialog.hideProgressDialog();
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getContext(), "네트워크가 불안정합니다. 다시 시도해주세요.", Toast.LENGTH_LONG).show();
-                        }
-                    });
-                    return;
-                }
-                else if(result.length() == 0) {
-                    dialog.hideProgressDialog();
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getContext(), "얼굴을 찾을 수 없습니다. 다시 촬영해 주세요.", Toast.LENGTH_LONG).show();
-                        }
-                    });
-                    return;
-                }
+                Pair<NCARApiRequest.NCARApi_Err, String> result = NCARApiRequest.detectFace(getContext(), User.getCurrentUser().getUserToken(), scaledBitmap);
+                switch (result.first) {
+                    case SUCCESS:
+                        if(result.second.length() == 2) {
+                            dialog.hideProgressDialog();
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getContext(), R.string.ncar_face_not_found_err, Toast.LENGTH_LONG).show();
+                                }
+                            });
 
-                try {
-                    JSONArray coordObj = new JSONArray(result).getJSONArray(0);
-                    /*
-                    cropBitmap = Bitmap.createBitmap(scaledBitmap,
-                            coordObj.getInt(0),
-                            coordObj.getInt(1),
-                            coordObj.getInt("postX") - coordObj.getInt("preX"),
-                            coordObj.getInt("postY") - coordObj.getInt("preY"));
-                    */
-                    if(NCARApiRequest.saveFace(getContext(), User.getCurrentUser().getUserEmail(), scaledBitmap) == -1) {
+                            return;
+                        }
+                        break;
+
+                    case NETWORK_ERR:
                         dialog.hideProgressDialog();
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(getContext(), "네트워크가 불안정합니다. 다시 시도해주세요.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getContext(), R.string.ncar_network_err, Toast.LENGTH_LONG).show();
                             }
                         });
                         return;
-                    }
 
-                    ((RegisterActivity)getActivity()).setCurrentItem(1, true);
+                    case UNKNOWN_ERR:
+                        dialog.hideProgressDialog();
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getContext(), R.string.ncar_unknown_err, Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        return;
+                }
+
+                try {
+                    JSONArray coordObj = new JSONArray(result.second).getJSONArray(0);
+
+                    NCARApiRequest.NCARApi_Err result2 = NCARApiRequest.saveFace(getContext(), User.getCurrentUser().getUserEmail(), scaledBitmap);
+                    switch (result2) {
+                        case SUCCESS:
+                            ((RegisterActivity)getActivity()).setCurrentItem(1, true);
+                            break;
+                        case FILE_ERR:
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getContext(), R.string.ncar_file_err, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            break;
+                        case NETWORK_ERR:
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getContext(), R.string.ncar_network_err, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            break;
+                        case UNKNOWN_ERR:
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getContext(), R.string.ncar_unknown_err, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                    }
                     dialog.hideProgressDialog();
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                     dialog.hideProgressDialog();
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(getContext(), "JSON 에러가 발생하였습니다. 다시 시도해주세요.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), R.string.ncar_json_err, Toast.LENGTH_LONG).show();
                         }
                     });
                 }
+
             }
         }).start();
     }

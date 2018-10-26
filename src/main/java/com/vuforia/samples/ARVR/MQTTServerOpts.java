@@ -1,14 +1,14 @@
 package com.vuforia.samples.ARVR;
 
-public class STTServerOpts {
+public class MQTTServerOpts {
     private String ip = "163.180.117.216";
-    private int port = 9091;
-    private int maxReadSize = 1024;
+    private int port = 1883;
+    private String topic = "";
 
-    public STTServerOpts(String ip, int port, int maxReadSize) {
+    public MQTTServerOpts(String ip, int port, String topic) {
         this.ip = ip;
         this.port = port;
-        this.maxReadSize = maxReadSize;
+        this.topic = topic;
     }
 
     public String getIp() {
@@ -27,11 +27,11 @@ public class STTServerOpts {
         this.port = port;
     }
 
-    public int getMaxReadSize() {
-        return maxReadSize;
+    public String getTopic() {
+        return topic;
     }
 
-    public void setMaxReadSize(int maxReadSize) {
-        this.maxReadSize = maxReadSize;
+    public void setTopic(String topic) {
+        this.topic = topic;
     }
 }

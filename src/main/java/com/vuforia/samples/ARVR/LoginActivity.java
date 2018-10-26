@@ -34,6 +34,7 @@ public class LoginActivity extends AppCompatActivity implements
 
     private GoogleSignInClient mGoogleSignInClient;
     private TextView mStatusTextView;
+    private NCARProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +69,8 @@ public class LoginActivity extends AppCompatActivity implements
         signInButton.setSize(SignInButton.SIZE_STANDARD);
         signInButton.setColorScheme(SignInButton.COLOR_LIGHT);
         // [END customize_button]
+
+        dialog = new NCARProgressDialog(this);
     }
 
     @Override
@@ -164,30 +167,41 @@ public class LoginActivity extends AppCompatActivity implements
             currentUser.setUserToken(account.getIdToken());
             currentUser.setUserEmail(account.getEmail());
 
+            dialog.showProgressDialog();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    int result = NCARApiRequest.checkIsRegister(currentUser.getUserEmail());
-                    if(result == 0) {
-                        startActivity(new Intent(LoginActivity.this, RoomActivity.class));
-                        finish();
+                    NCARApiRequest.NCARApi_Err result = NCARApiRequest.checkIsRegister(currentUser.getUserEmail());
+                    switch (result) {
+                        case SUCCESS:
+                            startActivity(new Intent(LoginActivity.this, RoomActivity.class));
+                            finish();
+                            break;
+                        case NETWORK_ERR:
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(LoginActivity.this, R.string.ncar_network_err, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            break;
+                        case FACE_NOT_FOUND:
+                        case AUDIO_NOT_FOUND:
+                            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                            intent.putExtra("register", result);
+                            startActivity(intent);
+                            finish();
+                            break;
+                        default:
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(LoginActivity.this, R.string.ncar_unknown_err, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            break;
                     }
-                    else if(result == -1) {
-                        //findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-                        //findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(LoginActivity.this, "네트워크가 불안정합니다. 다시 시도해주세요.", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    }
-                    else {
-                        Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                        intent.putExtra("register", result);
-                        startActivity(intent);
-                        finish();
-                    }
+                    dialog.hideProgressDialog();
                 }
             }).start();
         } else {

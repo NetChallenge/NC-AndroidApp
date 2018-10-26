@@ -17,6 +17,7 @@ public class STTTask extends AsyncTask<Void, Void, STTManager.STT_Err>{
     private Activity activity;
     private UnityPlayer unityPlayer;
     private STTManager sttManager;
+    private STTServerOpts sttOpts;
 
     private SocketClient.SockListener sockListener = new SocketClient.SockListener() {
         @Override
@@ -26,6 +27,7 @@ public class STTTask extends AsyncTask<Void, Void, STTManager.STT_Err>{
 
         @Override
         public void onRecv(byte[] recv) {
+            /*
             Log.d(TAG, "socket onRecv. data size is " + recv.length);
             try {
                 String result = new String(recv, "UTF-8");
@@ -34,6 +36,7 @@ public class STTTask extends AsyncTask<Void, Void, STTManager.STT_Err>{
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
+            */
         }
 
         @Override
@@ -60,17 +63,18 @@ public class STTTask extends AsyncTask<Void, Void, STTManager.STT_Err>{
         }
     };
 
-    public STTTask(Activity activity, UnityPlayer unityPlayer, STTManager sttManager) {
+    public STTTask(Activity activity, UnityPlayer unityPlayer, STTManager sttManager, STTServerOpts sttOpts) {
         this.activity = activity;
         this.unityPlayer = unityPlayer;
         this.sttManager = sttManager;
+        this.sttOpts = sttOpts;
     }
 
     @Override
     protected STTManager.STT_Err doInBackground(Void... voids) {
         sttManager.setSockListener(sockListener);
         sttManager.setOnReadListener(onReadListener);
-        return sttManager.initialize();
+        return sttManager.initialize(sttOpts);
     }
 
     @Override

@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: com.labo.kaji:relativepopupwindow-0.3.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/relativepopupwindow-0.3.1.aar/30423fcfd5b9e1de3403074c34af774f/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/relativepopupwindow-0.3.1.aar/30423fcfd5b9e1de3403074c34af774f/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.labo.kaji/relativepopupwindow/0.3.1/dc431dc85864efa9adda2ced5d85f58e553931a5/relativepopupwindow-0.3.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

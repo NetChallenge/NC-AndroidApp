@@ -53,4 +53,22 @@
   <!-- Server Client ID.  This should be a valid Web OAuth 2.0 Client ID obtained
        from https://console.developers.google.com/ -->
   <string name="server_client_id">128876746301-v3s0rh6h17j34c0l723kcijbs878hsj1.apps.googleusercontent.com</string>
+
+
+  <string name="ncar_room_not_found_err">매칭되는 방이 존재하지 않습니다.</string>
+  <string name="ncar_not_record_audio_err">오디오를 녹음해주세요.</string>
+  <string name="ncar_face_not_found_err">얼굴을 찾을 수 없습니다. 다시 시도해주세요.</string>
+  <string name="ncar_audio_not_found_err">음성을 찾을 수 없습니다. 다시 시도해주세요.</string>
+  <string name="ncar_room_already_exist_err">같은 방이름이 존재합니다. 다시 시도해주세요.</string>
+  <string name="ncar_json_err">JSON 에러가 발생하였습니다. 다시 시도해주세요.</string>
+  <string name="ncar_file_err">파일 에러입니다. 용량을 확인해주세요.</string>
+  <string name="ncar_network_err">네트워크가 불안정합니다. 다시 시도해주세요.</string>
+  <string name="ncar_unknown_err">알수없는 에러입니다. 다시 시도해주세요.</string>
+
+  <string name="room_list_create_title">CREATE</string>
+  <string name="room_list_participate_title">PARTICIPATE</string>
+  <string name="room_list_create_ok">CREATE</string>
+  <string name="room_list_create_cancel">CANCEL</string>
+  <string name="room_list_create_input_hint">방이름을 입력해 주세요.</string>
+  <string name="room_list_create_input_prefill"></string>
 </resources>

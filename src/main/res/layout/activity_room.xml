@@ -2,16 +2,84 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/white"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/room_test_btn"
+    <ImageView
+        android:id="@+id/room_not_exist_image"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="150dp"
+        android:background="@null"
+        android:scaleType="fitXY"
+        android:src="@drawable/not_exist"
+        android:visibility="gone"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:id="@+id/room_not_exist_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="test"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="생성된 방이 없습니다."
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
+        android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/room_not_exist_image"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <ImageButton
+        android:id="@+id/room_enter_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="150dp"
+        android:background="@null"
+        android:src="@drawable/enter_room"
+        android:scaleType="fitXY"
+        android:visibility="gone"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <com.github.clans.fab.FloatingActionMenu
+        android:id="@+id/room_fab_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        app:menu_icon="@drawable/list"
+        app:menu_labels_textSize="12sp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu_labels_style="@style/MenuLabelsStyle"
+        app:menu_labels_showAnimation="@anim/jump_from_down"
+        app:menu_labels_hideAnimation="@anim/jump_to_down"
+        app:menu_animationDelayPerItem="0"
+        app:menu_shadowColor="#444"
+        app:menu_colorNormal="#1565C0"
+        app:menu_colorPressed="#2272CD"
+        app:menu_colorRipple="#62B2FF">
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/room_create_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/plus"
+                app:fab_label="방생성"
+                style="@style/MenuButtonsSmall"/>
+
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/room_participate_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/check"
+                app:fab_label="방참여"
+                style="@style/MenuButtonsSmall" />
+    </com.github.clans.fab.FloatingActionMenu>
 
 </android.support.constraint.ConstraintLayout>

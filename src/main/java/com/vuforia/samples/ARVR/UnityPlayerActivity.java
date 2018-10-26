@@ -12,11 +12,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
+
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class UnityPlayerActivity extends Activity
 {
     protected UnityPlayer mUnityPlayer; // don't change the name of this variable; referenced from native code
     private STTManager sttManager = STTManager.getInstance();
+    private MQTTManager mqttManager = MQTTManager.getInstance();
+    private Room room = User.getCurrentUser().getCurrentRoom();
 
     // Setup activity layout
     @Override protected void onCreate(Bundle savedInstanceState)
@@ -66,7 +71,19 @@ public class UnityPlayerActivity extends Activity
         super.onStart();
         mUnityPlayer.start();
         //start sttmanager using asynctask
-        new STTTask(this, mUnityPlayer, sttManager).execute();
+        new STTTask(this, mUnityPlayer, sttManager, room.getSttOpts()).execute();
+        mqttManager.setMqttListener(new MQTTManager.MQTTListener() {
+            @Override
+            public void onConnectionLost() {
+                Toast.makeText(UnityPlayerActivity.this, "MQTT 연결이 끊어졌습니다. 네트워크를 확인해주세요.", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onArrive(MqttMessage message) {
+                mUnityPlayer.UnitySendMessage("ChattingManager", "CreateChat", message.toString());
+            }
+        });
+        mqttManager.initialize(room.getMqttOpts());
     }
 
     @Override protected void onStop()

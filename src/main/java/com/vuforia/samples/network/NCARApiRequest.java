@@ -3,6 +3,16 @@ package com.vuforia.samples.network;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.util.Pair;
+
+import com.google.gson.Gson;
+import com.vuforia.samples.ARVR.MQTTServerOpts;
+import com.vuforia.samples.ARVR.Room;
+import com.vuforia.samples.ARVR.STTServerOpts;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -27,10 +37,21 @@ import retrofit2.http.Part;
 import retrofit2.http.Query;
 
 public class NCARApiRequest {
+    public enum NCARApi_Err {
+        SUCCESS,
+        FACE_NOT_FOUND,
+        AUDIO_NOT_FOUND,
+        UNKNOWN_ERR,
+        NETWORK_ERR,
+        FILE_ERR,
+        ROOM_NOT_FOUND,
+        ALREADY_EXIST
+    }
+
     private static String baseUrl = "http://163.180.117.216:5679";
 
     private interface NCARApi {
-        @GET("checkIsRegister")
+        @POST("checkIsRegister")
         Call<String> checkIsRegister(@Query("email") String userEmail);
 
         @POST("detectFace")
@@ -44,6 +65,15 @@ public class NCARApiRequest {
         @POST("saveAudio")
         @Multipart
         Call<String> saveAudio(@Part("email") RequestBody email, @Part MultipartBody.Part audioFile);
+
+        @POST("getRoomInfoByEmail")
+        Call<Object> getRoomInfoByEmail(@Query("email") String userEmail);
+
+        @POST("getRoomInfoByTitle")
+        Call<Object> getRoomInfoByTitle(@Query("title") String roomTitle);
+
+        @POST("createRoom")
+        Call<Object> createRoom(@Query("email") String email, @Query("title") String roomTitle);
     }
 
     private static NCARApi getNCARApi() {
@@ -55,25 +85,37 @@ public class NCARApiRequest {
         return retrofit.create(NCARApi.class);
     }
 
-    public static int checkIsRegister(String userEmail) {
+    public static NCARApi_Err checkIsRegister(String userEmail) {
         NCARApi api = getNCARApi();
         Call<String> checkIsRegisterCall = api.checkIsRegister(userEmail);
 
         try {
             Response<String> response = checkIsRegisterCall.execute();
+            if(response.code() != 200)
+                return NCARApi_Err.UNKNOWN_ERR;
+
             int result = Integer.parseInt(response.body());
-            return result;
+            switch (result) {
+                case 0:
+                    return NCARApi_Err.SUCCESS;
+                case 1:
+                    return NCARApi_Err.FACE_NOT_FOUND;
+                case 2:
+                    return NCARApi_Err.AUDIO_NOT_FOUND;
+                default:
+                    return NCARApi_Err.UNKNOWN_ERR;
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            return -1;
+            return NCARApi_Err.NETWORK_ERR;
         }
     }
 
-    public static int saveFace(Context context, String userEmail, Bitmap face) {
+    public static NCARApi_Err saveFace(Context context, String userEmail, Bitmap face) {
         File file = new File(context.getCacheDir(), userEmail);
+
         try {
             file.createNewFile();
-
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             face.compress(Bitmap.CompressFormat.PNG, 0, bos);
             byte[] bitmapData = bos.toByteArray();
@@ -82,7 +124,12 @@ public class NCARApiRequest {
             fos.write(bitmapData);
             fos.flush();
             fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return NCARApi_Err.FILE_ERR;
+        }
 
+        try {
             NCARApi api = getNCARApi();
 
             Call<String> uploadImageCall = api.saveFace(
@@ -92,15 +139,26 @@ public class NCARApiRequest {
                             file.getName(),
                             RequestBody.create(MediaType.parse("image"), file)));
 
-            int result = Integer.parseInt(uploadImageCall.execute().body());
-            return result;
+            Response<String> response = uploadImageCall.execute();
+            if(response.code() != 200)
+                return NCARApi_Err.UNKNOWN_ERR;
+
+            int result = Integer.parseInt(response.body());
+            switch (result) {
+                case 1:
+                    return NCARApi_Err.SUCCESS;
+                case 0:
+                    return NCARApi_Err.UNKNOWN_ERR;
+                default:
+                    return NCARApi_Err.UNKNOWN_ERR;
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            return -1;
+            return NCARApi_Err.NETWORK_ERR;
         }
     }
 
-    public static String detectFace(Context context, String userToken, Bitmap face) {
+    public static Pair<NCARApi_Err, String> detectFace(Context context, String userToken, Bitmap face) {
         File file = new File(context.getCacheDir(), "tempimage");
         try {
             file.createNewFile();
@@ -123,15 +181,19 @@ public class NCARApiRequest {
                             file.getName(),
                             RequestBody.create(MediaType.parse("image"), file)));
 
-            ResponseBody jsonBody = uploadImageCall.execute().body();
-            return jsonBody.string();
+            Response<ResponseBody> response = uploadImageCall.execute();
+            if(response.code() != 200)
+                return new Pair(NCARApi_Err.UNKNOWN_ERR, null);
+
+            String result = (response.body().string());
+            return new Pair(NCARApi_Err.SUCCESS, result);
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
+            return new Pair(NCARApi_Err.NETWORK_ERR, null);
         }
     }
 
-    public static int saveAudio(Context context, String userEmail, File audio) {
+    public static NCARApi_Err saveAudio(Context context, String userEmail, File audio) {
         try {
             NCARApi api = getNCARApi();
 
@@ -142,11 +204,131 @@ public class NCARApiRequest {
                             audio.getName(),
                             RequestBody.create(MediaType.parse("audio"), audio)));
 
-            int result = Integer.parseInt(uploadAudioCall.execute().body());
-            return result;
+            Response<String> response = uploadAudioCall.execute();
+            if(response.code() != 200)
+                return NCARApi_Err.UNKNOWN_ERR;
+
+            int result = Integer.parseInt(response.body());
+            switch (result) {
+                case 1:
+                    return NCARApi_Err.SUCCESS;
+                case 0:
+                    return NCARApi_Err.UNKNOWN_ERR;
+                default:
+                    return NCARApi_Err.UNKNOWN_ERR;
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            return -1;
+            return NCARApi_Err.NETWORK_ERR;
+        }
+    }
+
+    public static Pair<NCARApi_Err, Room> getRoomInfoByEmail(String userEmail) {
+        NCARApi api = getNCARApi();
+        Call<Object> getRoomInfoByEmailCall = api.getRoomInfoByEmail(userEmail);
+
+        try {
+            Response<Object> response = getRoomInfoByEmailCall.execute();
+            if(response.code() == 204)
+                return new Pair(NCARApi_Err.ROOM_NOT_FOUND, null);
+            if(response.code() != 200)
+                return new Pair(NCARApi_Err.UNKNOWN_ERR, null);
+
+            String jsonString = new Gson().toJson(response.body());
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Room room = new Room(
+                    jsonObject.getInt("room_id"),
+                    jsonObject.getString("room_title"),
+                    new MQTTServerOpts(
+                            jsonObject.getString("mqtt_ip"),
+                            jsonObject.getInt("mqtt_port"),
+                            jsonObject.getString("mqtt_topic")),
+                    new STTServerOpts(
+                            jsonObject.getString("stt_ip"),
+                            jsonObject.getInt("stt_port"),
+                            jsonObject.getInt("stt_max_size"))
+            );
+
+            return new Pair(NCARApi_Err.SUCCESS, room);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Pair(NCARApi_Err.NETWORK_ERR, null);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return new Pair(NCARApi_Err.UNKNOWN_ERR, null);
+        }
+    }
+
+    public static Pair<NCARApi_Err, Room> getRoomInfoByTitle(String roomTitle) {
+        NCARApi api = getNCARApi();
+        Call<Object> getRoomInfoByTitleCall = api.getRoomInfoByTitle(roomTitle);
+
+        try {
+            Response<Object> response = getRoomInfoByTitleCall.execute();
+            if(response.code() == 204)
+                return new Pair(NCARApi_Err.ROOM_NOT_FOUND, null);
+            if(response.code() != 200)
+                return new Pair(NCARApi_Err.UNKNOWN_ERR, null);
+
+            String jsonString = new Gson().toJson(response.body());
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Room room = new Room(
+                    jsonObject.getInt("room_id"),
+                    jsonObject.getString("room_title"),
+                    new MQTTServerOpts(
+                            jsonObject.getString("mqtt_ip"),
+                            jsonObject.getInt("mqtt_port"),
+                            jsonObject.getString("mqtt_topic")),
+                    new STTServerOpts(
+                            jsonObject.getString("stt_ip"),
+                            jsonObject.getInt("stt_port"),
+                            jsonObject.getInt("stt_max_size"))
+            );
+
+            return new Pair(NCARApi_Err.SUCCESS, room);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Pair(NCARApi_Err.NETWORK_ERR, null);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return new Pair(NCARApi_Err.UNKNOWN_ERR, null);
+        }
+    }
+
+    public static Pair<NCARApi_Err, Room> createRoom(String userEmail, String roomTitle) {
+        try {
+            NCARApi api = getNCARApi();
+
+            Call<Object> uploadImageCall = api.createRoom(userEmail, roomTitle);
+            Response<Object> response = uploadImageCall.execute();
+            if(response.code() == 204)
+                return new Pair(NCARApi_Err.ALREADY_EXIST, null);
+            else if(response.code() != 200)
+                return new Pair(NCARApi_Err.UNKNOWN_ERR, null);
+
+            String jsonString = new Gson().toJson(response.body());
+            JSONObject jsonObject = new JSONObject(jsonString);
+
+            Room room = new Room(
+                    jsonObject.getInt("room_id"),
+                    jsonObject.getString("room_title"),
+                    new MQTTServerOpts(
+                            jsonObject.getString("mqtt_ip"),
+                            jsonObject.getInt("mqtt_port"),
+                            jsonObject.getString("mqtt_topic")),
+                    new STTServerOpts(
+                            jsonObject.getString("stt_ip"),
+                            jsonObject.getInt("stt_port"),
+                            jsonObject.getInt("stt_max_size"))
+                    );
+
+            return new Pair(NCARApi_Err.SUCCESS, room);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Pair(NCARApi_Err.NETWORK_ERR, null);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return new Pair(NCARApi_Err.UNKNOWN_ERR, null);
         }
     }
 }
