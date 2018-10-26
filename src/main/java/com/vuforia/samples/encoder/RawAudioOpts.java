@@ -1,4 +1,4 @@
-package com.vuforia.samples.ARVR;
+package com.vuforia.samples.encoder;
 
 public class RawAudioOpts {
     private static int sampleRate = 16000;	// 44.1[KHz] is only setting guaranteed to be available on all devices. //for STT, 16000hz is needed

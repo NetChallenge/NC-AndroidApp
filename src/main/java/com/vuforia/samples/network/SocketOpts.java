@@ -1,11 +1,11 @@
-package com.vuforia.samples.ARVR;
+package com.vuforia.samples.network;
 
-public class STTServerOpts {
-    private String ip = "163.180.117.216";
-    private int port = 9091;
-    private int maxReadSize = 1024;
+public class SocketOpts {
+    private String ip;
+    private int port;
+    private int maxReadSize;
 
-    public STTServerOpts(String ip, int port, int maxReadSize) {
+    public SocketOpts(String ip, int port, int maxReadSize) {
         this.ip = ip;
         this.port = port;
         this.maxReadSize = maxReadSize;

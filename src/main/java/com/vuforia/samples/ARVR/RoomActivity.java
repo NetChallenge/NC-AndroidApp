@@ -7,20 +7,17 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Pair;
-import android.util.TypedValue;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
-import com.labo.kaji.relativepopupwindow.RelativePopupWindow;
+import com.vuforia.samples.model.Room;
+import com.vuforia.samples.model.User;
 import com.vuforia.samples.network.NCARApiRequest;
 
 public class RoomActivity extends AppCompatActivity implements View.OnClickListener {

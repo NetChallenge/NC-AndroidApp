@@ -1,4 +1,4 @@
-package com.vuforia.samples.ARVR;
+package com.vuforia.samples.encoder;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;

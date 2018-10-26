@@ -71,4 +71,8 @@
   <string name="room_list_create_cancel">CANCEL</string>
   <string name="room_list_create_input_hint">방이름을 입력해 주세요.</string>
   <string name="room_list_create_input_prefill"></string>
+
+  <string name="ncar_video_init_err">비디오 초기화에 실패하였습니다.</string>
+  <string name="ncar_audio_init_err">비디오 초기화에 실패하였습니다.</string>
+  <string name="ncar_mqtt_init_err">MQTT 초기화에 실패하였습니다.</string>
 </resources>

@@ -15,14 +15,13 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.vuforia.samples.model.User;
 import com.vuforia.samples.network.NCARApiRequest;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.List;
 
 public class RegisterFaceFragment extends Fragment implements View.OnClickListener{
     //public static Bitmap cropBitmap = null;

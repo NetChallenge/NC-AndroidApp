@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.vuforia.samples.model.User;
 import com.vuforia.samples.network.NCARApiRequest;
 
 import java.io.File;

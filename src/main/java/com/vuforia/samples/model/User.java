@@ -1,6 +1,4 @@
-package com.vuforia.samples.ARVR;
-
-import java.util.List;
+package com.vuforia.samples.model;
 
 public class User {
     private String userToken;
@@ -8,8 +6,8 @@ public class User {
     private Room userRoom;
     private Room currentRoom;
 
-    static User currentUser = null;
-    static synchronized User getCurrentUser() {
+    public static User currentUser = null;
+    public static synchronized User getCurrentUser() {
         if(currentUser == null)
             currentUser = new User();
         return currentUser;

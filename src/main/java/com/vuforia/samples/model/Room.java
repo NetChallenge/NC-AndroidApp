@@ -1,16 +1,19 @@
-package com.vuforia.samples.ARVR;
+package com.vuforia.samples.model;
+
+import com.vuforia.samples.mqtt.MQTTServerOpts;
+import com.vuforia.samples.network.SocketOpts;
 
 public class Room {
     private int roomId;
     private String roomTitle;
     private MQTTServerOpts mqttOpts;
-    private STTServerOpts sttOpts;
+    private SocketOpts sockOpts;
 
-    public Room(int roomId, String roomTitle, MQTTServerOpts mqttOpts, STTServerOpts sttOpts) {
+    public Room(int roomId, String roomTitle, MQTTServerOpts mqttOpts, SocketOpts sockOpts) {
         this.roomId = roomId;
         this.roomTitle = roomTitle;
         this.mqttOpts = mqttOpts;
-        this.sttOpts = sttOpts;
+        this.sockOpts = sockOpts;
     }
 
     public String getRoomTitle() {
@@ -29,12 +32,12 @@ public class Room {
         this.mqttOpts = mqttOpts;
     }
 
-    public STTServerOpts getSttOpts() {
-        return sttOpts;
+    public SocketOpts getSttOpts() {
+        return sockOpts;
     }
 
-    public void setSttOpts(STTServerOpts sttOpts) {
-        this.sttOpts = sttOpts;
+    public void setSttOpts(SocketOpts sockOpts) {
+        this.sockOpts = sockOpts;
     }
 
     public int getRoomId() {

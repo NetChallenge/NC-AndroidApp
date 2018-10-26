@@ -1,4 +1,4 @@
-package com.vuforia.samples.ARVR;
+package com.vuforia.samples.mqtt;
 
 public class MQTTServerOpts {
     private String ip = "163.180.117.216";
