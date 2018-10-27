@@ -101,7 +101,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run() {
 
-                Pair<NCARApiRequest.NCARApi_Err, Room> result = NCARApiRequest.createRoom(User.getCurrentUser().getUserEmail(), roomTitle);
+                Pair<NCARApiRequest.NCARApi_Err, Room> result = NCARApiRequest.createRoom(User.getCurrentUser().getUserEmail(), User.getCurrentUser().getUserName(), roomTitle);
                 switch(result.first) {
                     case SUCCESS:
                         User.getCurrentUser().setUserRoom(result.second);

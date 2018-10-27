@@ -34,9 +34,10 @@
 
     <ImageButton
         android:id="@+id/room_enter_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="150dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="200dp"
+        android:layout_marginRight="30dp"
         android:background="@null"
         android:src="@drawable/enter_room"
         android:scaleType="fitXY"

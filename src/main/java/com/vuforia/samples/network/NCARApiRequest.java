@@ -53,11 +53,11 @@ public class NCARApiRequest {
 
         @POST("saveFace")
         @Multipart
-        Call<String> saveFace(@Part("email") RequestBody email, @Part MultipartBody.Part imageFile);
+        Call<String> saveFace(@Part("email") RequestBody email, @Part("name") RequestBody name, @Part MultipartBody.Part imageFile);
 
         @POST("saveAudio")
         @Multipart
-        Call<String> saveAudio(@Part("email") RequestBody email, @Part MultipartBody.Part audioFile);
+        Call<String> saveAudio(@Part("email") RequestBody email, @Part("name") RequestBody name, @Part MultipartBody.Part audioFile);
 
         @POST("getRoomInfoByEmail")
         Call<Object> getRoomInfoByEmail(@Query("email") String userEmail);
@@ -66,7 +66,7 @@ public class NCARApiRequest {
         Call<Object> getRoomInfoByTitle(@Query("title") String roomTitle);
 
         @POST("createRoom")
-        Call<Object> createRoom(@Query("email") String email, @Query("title") String roomTitle);
+        Call<Object> createRoom(@Query("email") String email, @Query("name") String name, @Query("title") String roomTitle);
     }
 
     private static NCARApi getNCARApi() {
@@ -104,7 +104,7 @@ public class NCARApiRequest {
         }
     }
 
-    public static NCARApi_Err saveFace(Context context, String userEmail, Bitmap face) {
+    public static NCARApi_Err saveFace(Context context, String userEmail, String userName, Bitmap face) {
         File file = new File(context.getCacheDir(), userEmail);
 
         try {
@@ -127,6 +127,7 @@ public class NCARApiRequest {
 
             Call<String> uploadImageCall = api.saveFace(
                     RequestBody.create(MediaType.parse("text/plain"), userEmail),
+                    RequestBody.create(MediaType.parse("text/plain"), userName),
                     MultipartBody.Part.createFormData(
                             "image",
                             file.getName(),
@@ -186,12 +187,13 @@ public class NCARApiRequest {
         }
     }
 
-    public static NCARApi_Err saveAudio(Context context, String userEmail, File audio) {
+    public static NCARApi_Err saveAudio(Context context, String userEmail, String userName, File audio) {
         try {
             NCARApi api = getNCARApi();
 
             Call<String> uploadAudioCall = api.saveAudio(
                     RequestBody.create(MediaType.parse("text/plain"), userEmail),
+                    RequestBody.create(MediaType.parse("text/plain"), userName),
                     MultipartBody.Part.createFormData(
                             "audio",
                             audio.getName(),
@@ -288,11 +290,11 @@ public class NCARApiRequest {
         }
     }
 
-    public static Pair<NCARApi_Err, Room> createRoom(String userEmail, String roomTitle) {
+    public static Pair<NCARApi_Err, Room> createRoom(String userEmail, String userName, String roomTitle) {
         try {
             NCARApi api = getNCARApi();
 
-            Call<Object> uploadImageCall = api.createRoom(userEmail, roomTitle);
+            Call<Object> uploadImageCall = api.createRoom(userEmail, userName, roomTitle);
             Response<Object> response = uploadImageCall.execute();
             if(response.code() == 204)
                 return new Pair(NCARApi_Err.ALREADY_EXIST, null);

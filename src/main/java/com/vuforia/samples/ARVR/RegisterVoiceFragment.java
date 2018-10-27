@@ -123,7 +123,7 @@ public class RegisterVoiceFragment extends Fragment implements View.OnClickListe
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    NCARApiRequest.NCARApi_Err result = NCARApiRequest.saveAudio(getContext(), User.getCurrentUser().getUserEmail(), audioFile);
+                    NCARApiRequest.NCARApi_Err result = NCARApiRequest.saveAudio(getContext(), User.getCurrentUser().getUserEmail(), User.getCurrentUser().getUserName(), audioFile);
                     switch(result) {
                         case SUCCESS:
                             startActivity(new Intent(getActivity(), RoomActivity.class));

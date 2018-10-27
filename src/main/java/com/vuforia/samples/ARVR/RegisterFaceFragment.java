@@ -108,7 +108,7 @@ public class RegisterFaceFragment extends Fragment implements View.OnClickListen
                 try {
                     JSONArray coordObj = new JSONArray(result.second).getJSONArray(0);
 
-                    NCARApiRequest.NCARApi_Err result2 = NCARApiRequest.saveFace(getContext(), User.getCurrentUser().getUserEmail(), scaledBitmap);
+                    NCARApiRequest.NCARApi_Err result2 = NCARApiRequest.saveFace(getContext(), User.getCurrentUser().getUserEmail(), User.getCurrentUser().getUserName(), scaledBitmap);
                     switch (result2) {
                         case SUCCESS:
                             ((RegisterActivity)getActivity()).setCurrentItem(1, true);

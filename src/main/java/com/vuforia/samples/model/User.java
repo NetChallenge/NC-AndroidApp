@@ -3,6 +3,7 @@ package com.vuforia.samples.model;
 public class User {
     private String userToken;
     private String userEmail;
+    private String userName;
     private Room userRoom;
     private Room currentRoom;
 
@@ -43,5 +44,13 @@ public class User {
 
     public void setUserRoom(Room userRoom) {
         this.userRoom = userRoom;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

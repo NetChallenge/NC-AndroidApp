@@ -163,6 +163,7 @@ public class LoginActivity extends AppCompatActivity implements
             //findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             //findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
             final User currentUser = User.getCurrentUser();
+            currentUser.setUserName(account.getDisplayName());
             currentUser.setUserToken(account.getIdToken());
             currentUser.setUserEmail(account.getEmail());
 
