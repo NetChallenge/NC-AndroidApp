@@ -7,13 +7,20 @@ import com.vuforia.samples.encoder.RawAudioStream;
 import com.vuforia.samples.model.Room;
 import com.vuforia.samples.model.User;
 import com.vuforia.samples.mqtt.MQTTManager;
+import com.vuforia.samples.network.LocalSocketServer;
 import com.vuforia.samples.network.SocketClient;
-import com.vuforia.samples.unity.UnityAndroidBridge;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Window;
@@ -21,10 +28,17 @@ import android.widget.Toast;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class UnityPlayerActivity extends Activity
 {
+    private static String TAG = "UnityPlayerActivity";
+
     //send message type
     public enum SEND_MSG {
         VIDEO(0x00),AUDIO(0x01);
@@ -40,7 +54,6 @@ public class UnityPlayerActivity extends Activity
     }
 
     protected UnityPlayer mUnityPlayer; // don't change the name of this variable; referenced from native code
-    private UnityAndroidBridge unityAndroidBridge = new UnityAndroidBridge();
     private Room room = User.getCurrentUser().getCurrentRoom();
 
     //for mqtt message
@@ -54,6 +67,9 @@ public class UnityPlayerActivity extends Activity
 
     //for audio
     private RawAudioStream rawAudioStream;
+
+    //for unity communication
+    private LocalSocketServer localSocketServer = new LocalSocketServer();
 
     // Setup activity layout
     @Override protected void onCreate(Bundle savedInstanceState)
@@ -83,7 +99,7 @@ public class UnityPlayerActivity extends Activity
 
                             @Override
                             public void onRecv(byte[] recv) {
-
+                                //we need to recv face rectangle
                             }
 
                             @Override
@@ -106,6 +122,7 @@ public class UnityPlayerActivity extends Activity
                 avcEncoder = new AvcEncoder(new AvcEncoder.OnReadListener() {
                     @Override
                     public void onRead(byte[] data) {
+                        Log.d(TAG, "avcEncoder Read. size is " + data.length);
                         byte[] output = new byte[data.length + 1];
                         output[0] = SEND_MSG.VIDEO.getValue();
                         System.arraycopy(data, 0, output, 1, data.length);
@@ -189,30 +206,63 @@ public class UnityPlayerActivity extends Activity
 
                             @Override
                             public void onArrive(MqttMessage message) {
-                                mUnityPlayer.UnitySendMessage("ChattingManager", "CreateChat", message.toString());
+                                //we need to pass image
+                                Log.d(TAG, "message arrived. " + message.toString());
+                                //mUnityPlayer.UnitySendMessage("ChattingManager", "CreateChat", message.toString());
                             }
                         });
                         break;
                 }
 
-                //start sttmanager using asynctask
-                unityAndroidBridge.setEventListener(new UnityAndroidBridge.OnEventListener() {
+                //가로 x 세로 x YUV(1.5)를 곱하여야함
+                localSocketServer.setBufferSize(1280 * 720 * 3 / 2);
+                localSocketServer.setOnRecvListener(new LocalSocketServer.OnRecvListener() {
+                    boolean isSaved = false;
                     @Override
-                    public void onByteArrayRecved(byte[] data) {
-                        avcEncoder.putData(data);
+                    public void onRecv(byte[] recv) {
+                        avcEncoder.putData(recv);
+
+                        /*
+                        if(isSaved == false) {
+                            isSaved = true;
+                            try {
+                                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                                YuvImage yuvImage = new YuvImage(recv, ImageFormat.NV21, 1280, 720, null);
+                                yuvImage.compressToJpeg(new Rect(0, 0, 1280, 720), 50, out);
+                                File file = new File(Environment.getExternalStorageDirectory() + "/nv21test.jpeg");
+                                FileOutputStream out2 = new FileOutputStream(file);
+                                out2.write(out.toByteArray());
+                                out2.close();
+                                out.close();
+
+                                out = new ByteArrayOutputStream();
+                                YuvImage yuvImage2 = new YuvImage(recv, ImageFormat.YV12, 1280, 720, null);
+                                yuvImage2.compressToJpeg(new Rect(0, 0, 1280, 720), 50, out);
+                                file = new File(Environment.getExternalStorageDirectory() + "/yv12test.jpeg");
+                                out2 = new FileOutputStream(file);
+                                out2.write(out.toByteArray());
+                                out2.close();
+                                out.close();
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        */
                     }
                 });
-
                 //start all
+                localSocketServer.start();
                 sockClient.start();
                 avcEncoder.start();
                 rawAudioStream.start();
-                mUnityPlayer.start();
             }
         }).start();
     }
 
     private void release() {
+        localSocketServer.setStopThread(true);
         sockClient.close();
         avcEncoder.close();
         rawAudioStream.stopStream();
@@ -254,6 +304,7 @@ public class UnityPlayerActivity extends Activity
     @Override protected void onStart()
     {
         super.onStart();
+        mUnityPlayer.start();
         initialize();
     }
 

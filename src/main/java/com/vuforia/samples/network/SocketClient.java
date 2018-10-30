@@ -71,13 +71,25 @@ public class SocketClient extends Thread {
         isAlive = false;
     }
 
-    //TODO 2018-07-11: need to change based on queue
-    public void write(byte[] buf) {
+    //first you need to send size of packet and send packet
+    public synchronized void write(byte[] buf) {
         try {
+            sockOut.write(toBytes(buf.length));
             sockOut.write(buf);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private byte[] toBytes(int i) {
+        byte[] result = new byte[4];
+
+        result[0] = (byte) (i >> 24);
+        result[1] = (byte) (i >> 16);
+        result[2] = (byte) (i >> 8);
+        result[3] = (byte) (i /*>> 0*/);
+
+        return result;
     }
 
     public byte[] read() {

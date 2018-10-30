@@ -25,10 +25,10 @@ public class AvcEncoder extends AsyncThread<byte[]>{
     public boolean initialize() {
         try {
             mediaCodec = MediaCodec.createEncoderByType("video/avc");
-            MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", 640, 480);
-            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 125000);
+            MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
+            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 1024*1024);
             mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
-            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV444Flexible);
+            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar);
             mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 10);
             mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mediaCodec.start();
@@ -63,10 +63,10 @@ public class AvcEncoder extends AsyncThread<byte[]>{
                 ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
                 byte[] outData = new byte[bufferInfo.size];
                 outputBuffer.get(outData);
+                /*
                 if (sps != null && pps != null) {
-                    ByteBuffer frameBuffer = ByteBuffer.wrap(outData);
-                    frameBuffer.putInt(bufferInfo.size - 4);
-                    listener.onRead(outData);
+                    //ByteBuffer frameBuffer = ByteBuffer.wrap(outData);
+                    //frameBuffer.putInt(bufferInfo.size - 4);
                     //frameListener.frameReceived(outData, 0, outData.length);
                 } else {
                     ByteBuffer spsPpsBuffer = ByteBuffer.wrap(outData);
@@ -84,7 +84,11 @@ public class AvcEncoder extends AsyncThread<byte[]>{
                     System.arraycopy(outData, 4, sps, 0, sps.length);
                     pps = new byte[outData.length - ppsIndex];
                     System.arraycopy(outData, ppsIndex, pps, 0, pps.length);
+
                 }
+                */
+                listener.onRead(outData);
+
                 mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
                 outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
             }
@@ -95,6 +99,7 @@ public class AvcEncoder extends AsyncThread<byte[]>{
 
     @Override
     public void process(byte[] data) {
+        //data has nv21 type
         offerEncoder(data);
     }
 }

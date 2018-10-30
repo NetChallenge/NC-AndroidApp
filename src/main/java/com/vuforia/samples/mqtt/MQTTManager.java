@@ -6,6 +6,7 @@ import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -42,7 +43,7 @@ public class MQTTManager implements MqttCallback {
 
     //MQTTManager는 오직 한개만 존재하여야 한다.
     private static MQTTManager mqttManager = null;
-    private IMqttAsyncClient client = null;
+    private MqttClient client = null;
     private MQTTManager.MQTTListener listener = null;
 
     private MQTTManager() {}
@@ -60,7 +61,7 @@ public class MQTTManager implements MqttCallback {
 
     public MQTT_Err initialize(MQTTServerOpts mqttOpts) {
         try {
-            client = new MqttAsyncClient(
+            client = new MqttClient(
                     "tcp://" + mqttOpts.getIp() + ":" + mqttOpts.getPort(),
                     User.getCurrentUser().getUserEmail(),
                     new MemoryPersistence());
@@ -74,6 +75,4 @@ public class MQTTManager implements MqttCallback {
             return MQTT_Err.INIT_FAIL;
         }
     }
-
-
 }

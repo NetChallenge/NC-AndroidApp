@@ -55,7 +55,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                 Pair<NCARApiRequest.NCARApi_Err, Room> result = NCARApiRequest.getRoomInfoByEmail(User.currentUser.getUserEmail());
                 switch (result.first) {
                     case SUCCESS:
-                        User.currentUser.setCurrentRoom(result.second);
+                        User.currentUser.setUserRoom(result.second);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
