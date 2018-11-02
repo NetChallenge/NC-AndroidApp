@@ -8,12 +8,14 @@ public class Room {
     private String roomTitle;
     private MQTTServerOpts mqttOpts;
     private SocketOpts sockOpts;
+    private String sttContainerId;
 
-    public Room(int roomId, String roomTitle, MQTTServerOpts mqttOpts, SocketOpts sockOpts) {
+    public Room(int roomId, String roomTitle, MQTTServerOpts mqttOpts, SocketOpts sockOpts, String sttContainerId) {
         this.roomId = roomId;
         this.roomTitle = roomTitle;
         this.mqttOpts = mqttOpts;
         this.sockOpts = sockOpts;
+        this.sttContainerId = sttContainerId;
     }
 
     public String getRoomTitle() {
@@ -46,5 +48,13 @@ public class Room {
 
     public void setRoomId(int roomId) {
         this.roomId = roomId;
+    }
+
+    public String getSttContainerId() {
+        return sttContainerId;
+    }
+
+    public void setSttContainerId(String sttContainerId) {
+        this.sttContainerId = sttContainerId;
     }
 }

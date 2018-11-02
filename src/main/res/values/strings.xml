@@ -67,7 +67,7 @@
 
   <string name="room_list_create_title">CREATE</string>
   <string name="room_list_participate_title">PARTICIPATE</string>
-  <string name="room_list_create_ok">CREATE</string>
+  <string name="room_list_create_ok">NEXT</string>
   <string name="room_list_create_cancel">CANCEL</string>
   <string name="room_list_create_input_hint">방이름을 입력해 주세요.</string>
   <string name="room_list_create_input_prefill"></string>

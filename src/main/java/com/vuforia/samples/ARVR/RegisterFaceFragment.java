@@ -68,7 +68,12 @@ public class RegisterFaceFragment extends Fragment implements View.OnClickListen
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Pair<NCARApiRequest.NCARApi_Err, String> result = NCARApiRequest.detectFace(getContext(), User.getCurrentUser().getUserToken(), scaledBitmap);
+
+                double heightRatio = 640.0 / scaledBitmap.getHeight();
+                Bitmap detectionBitmap = Bitmap.createScaledBitmap(scaledBitmap, (int)(scaledBitmap.getWidth()*heightRatio), 640, true);
+                detectionBitmap = Bitmap.createBitmap(detectionBitmap, 0, 0, detectionBitmap.getWidth(), detectionBitmap.getHeight(), new Matrix(), true);
+
+                Pair<NCARApiRequest.NCARApi_Err, String> result = NCARApiRequest.detectFace(getContext(), User.getCurrentUser().getUserToken(), detectionBitmap);
                 switch (result.first) {
                     case SUCCESS:
                         if(result.second.length() == 2) {

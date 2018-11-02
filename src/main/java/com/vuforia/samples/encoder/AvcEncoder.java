@@ -28,7 +28,7 @@ public class AvcEncoder extends AsyncThread<byte[]>{
             MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", 1280, 720);
             mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 1024*1024);
             mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
-            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar);
+            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
             mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 10);
             mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mediaCodec.start();

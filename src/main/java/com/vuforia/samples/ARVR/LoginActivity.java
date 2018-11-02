@@ -171,7 +171,7 @@ public class LoginActivity extends AppCompatActivity implements
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    NCARApiRequest.NCARApi_Err result = NCARApiRequest.checkIsRegister(currentUser.getUserEmail());
+                    NCARApiRequest.NCARApi_Err result = NCARApiRequest.checkIsRegister(currentUser.getUserEmail(), currentUser.getUserName());
                     switch (result) {
                         case SUCCESS:
                             startActivity(new Intent(LoginActivity.this, RoomActivity.class));

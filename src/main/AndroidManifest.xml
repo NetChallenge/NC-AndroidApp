@@ -16,6 +16,7 @@
         </activity>
         <activity android:name=".RegisterActivity" android:screenOrientation="portrait"/>
         <activity android:name=".RoomActivity" android:screenOrientation="portrait" android:theme="@style/Theme.AppCompat.NoActionBar"/>
+        <activity android:name=".SearchActivity" android:screenOrientation="portrait" android:theme="@style/Theme.AppCompat.NoActionBar"/>
         <meta-data android:name="unity.build-id" android:value="ddfefb5c-3a39-4382-916a-604933e13cf8" />
         <meta-data android:name="unity.splash-mode" android:value="0" />
         <meta-data android:name="unity.splash-enable" android:value="False" />

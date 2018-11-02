@@ -1,10 +1,11 @@
 package com.vuforia.samples.model;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable{
     private String userToken;
     private String userEmail;
     private String userName;
-    private Room userRoom;
     private Room currentRoom;
 
     public static User currentUser = null;
@@ -12,6 +13,13 @@ public class User {
         if(currentUser == null)
             currentUser = new User();
         return currentUser;
+    }
+
+    private User() {}
+
+    public User(String userEmail, String userName) {
+        this.userEmail = userEmail;
+        this.userName = userName;
     }
 
     public String getUserToken() {
@@ -36,14 +44,6 @@ public class User {
 
     public void setCurrentRoom(Room currentRoom) {
         this.currentRoom = currentRoom;
-    }
-
-    public Room getUserRoom() {
-        return userRoom;
-    }
-
-    public void setUserRoom(Room userRoom) {
-        this.userRoom = userRoom;
     }
 
     public String getUserName() {

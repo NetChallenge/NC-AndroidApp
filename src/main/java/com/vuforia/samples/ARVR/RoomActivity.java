@@ -20,7 +20,11 @@ import com.vuforia.samples.model.Room;
 import com.vuforia.samples.model.User;
 import com.vuforia.samples.network.NCARApiRequest;
 
+import java.util.ArrayList;
+
 public class RoomActivity extends AppCompatActivity implements View.OnClickListener {
+    public static final int SEARCH=1;
+
     private FloatingActionMenu fabMenu;
     private FloatingActionButton createBtn;
     private FloatingActionButton participateBtn;
@@ -28,6 +32,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     private TextView imageNotExistText;
     private ImageButton roomEnterBtn;
     private NCARProgressDialog dialog;
+    private String roomTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +60,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                 Pair<NCARApiRequest.NCARApi_Err, Room> result = NCARApiRequest.getRoomInfoByEmail(User.currentUser.getUserEmail());
                 switch (result.first) {
                     case SUCCESS:
-                        User.currentUser.setUserRoom(result.second);
+                        User.currentUser.setCurrentRoom(result.second);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -95,16 +100,17 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
-    private void createRoom(final String roomTitle) {
+    private void createRoom(final String roomTitle, final ArrayList<User> users) {
         dialog.showProgressDialog();
         new Thread(new Runnable() {
             @Override
             public void run() {
 
-                Pair<NCARApiRequest.NCARApi_Err, Room> result = NCARApiRequest.createRoom(User.getCurrentUser().getUserEmail(), User.getCurrentUser().getUserName(), roomTitle);
+                users.add(User.getCurrentUser());
+                Pair<NCARApiRequest.NCARApi_Err, Room> result = NCARApiRequest.createRoom(User.getCurrentUser().getUserEmail(), User.getCurrentUser().getUserName(), roomTitle, users);
                 switch(result.first) {
                     case SUCCESS:
-                        User.getCurrentUser().setUserRoom(result.second);
+                        User.getCurrentUser().setCurrentRoom(result.second);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -144,16 +150,17 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
-    private void enterRoom(final String roomTitle) {
+    private void enterRoom(final Room room) {
         dialog.showProgressDialog();
         new Thread(new Runnable() {
             @Override
             public void run() {
 
-                Pair<NCARApiRequest.NCARApi_Err, Room> result = NCARApiRequest.getRoomInfoByTitle(roomTitle);
+                Pair<NCARApiRequest.NCARApi_Err, Integer> result = NCARApiRequest.enterRoom(User.getCurrentUser().getUserEmail(), room.getRoomId());
                 switch(result.first) {
                     case SUCCESS:
-                        User.getCurrentUser().setCurrentRoom(result.second);
+                        room.getSttOpts().setPort(result.second);
+                        User.getCurrentUser().setCurrentRoom(room);
                         Intent intent = new Intent(RoomActivity.this, UnityPlayerActivity.class);
                         startActivity(intent);
                         break;
@@ -182,6 +189,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                         });
                         break;
                 }
+
                 dialog.hideProgressDialog();
             }
         }).start();
@@ -202,19 +210,24 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                         .input(R.string.room_list_create_input_hint, R.string.room_list_create_input_prefill, new MaterialDialog.InputCallback() {
                             @Override
                             public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
-                                if(input != null || input != "")
-                                    createRoom(input.toString());
-                                else
+                                if(input != null || input != "") {
+                                    roomTitle = input.toString();
+                                    Intent intent = new Intent(RoomActivity.this, SearchActivity.class);
+                                    startActivityForResult(intent, SEARCH);
+                                }
+                                else {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
                                             Toast.makeText(RoomActivity.this, "방 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
                                         }
                                     });
+                                }
                             }
                         }).show();
                 break;
             case R.id.room_participate_btn:
+                /*
                 new MaterialDialog.Builder(this)
                         .title(R.string.room_list_participate_title)
                         .titleColor(Color.BLACK)
@@ -236,12 +249,21 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                                         }
                                     });
                             }
-                        }).show();
+                        }).show();*/
                 break;
 
             case R.id.room_enter_btn:
-                enterRoom(User.getCurrentUser().getUserRoom().getRoomTitle());
+                enterRoom(User.getCurrentUser().getCurrentRoom());
                 break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if(requestCode == SEARCH) {
+                createRoom(roomTitle.toString(), (ArrayList<User>)data.getSerializableExtra("users"));
+            }
         }
     }
 }

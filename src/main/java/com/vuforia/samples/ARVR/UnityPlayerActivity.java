@@ -8,6 +8,7 @@ import com.vuforia.samples.model.Room;
 import com.vuforia.samples.model.User;
 import com.vuforia.samples.mqtt.MQTTManager;
 import com.vuforia.samples.network.LocalSocketServer;
+import com.vuforia.samples.network.NCARApiRequest;
 import com.vuforia.samples.network.SocketClient;
 
 import android.app.Activity;
@@ -27,12 +28,14 @@ import android.view.Window;
 import android.widget.Toast;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 public class UnityPlayerActivity extends Activity
@@ -71,6 +74,9 @@ public class UnityPlayerActivity extends Activity
     //for unity communication
     private LocalSocketServer localSocketServer = new LocalSocketServer();
 
+    //dialog
+    NCARProgressDialog dialog = new NCARProgressDialog(this);
+
     // Setup activity layout
     @Override protected void onCreate(Bundle savedInstanceState)
     {
@@ -87,28 +93,52 @@ public class UnityPlayerActivity extends Activity
         new Thread(new Runnable() {
             @Override
             public void run() {
-                sockClient = new SocketClient(
-                        room.getSttOpts().getIp(),
-                        room.getSttOpts().getPort(),
-                        room.getSttOpts().getMaxReadSize(),
-                        new SocketClient.SockListener() {
-                            @Override
-                            public void onConnect() {
+                int retry = 0;
+                boolean isConnected = false;
 
-                            }
+                while(retry <= 10) {
+                    sockClient = new SocketClient(
+                            room.getSttOpts().getIp(),
+                            room.getSttOpts().getPort(),
+                            room.getSttOpts().getMaxReadSize(),
+                            new SocketClient.SockListener() {
+                                @Override
+                                public void onConnect() {
 
-                            @Override
-                            public void onRecv(byte[] recv) {
-                                //we need to recv face rectangle
-                            }
+                                }
 
-                            @Override
-                            public void onStopped() {
+                                @Override
+                                public void onRecv(byte[] recv) {
+                                    //we need to recv face rectangle
+                                    try {
+                                        String json = new String(recv, "UTF-8");
+                                        Log.d(TAG, "json : " + json);
+                                    } catch (UnsupportedEncodingException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
 
-                            }
-                        });
+                                @Override
+                                public void onStopped() {
 
-                if(!sockClient.connect()) {
+                                }
+                            });
+
+                    if (!sockClient.connect()) {
+                        retry++;
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    else {
+                        isConnected = true;
+                        break;
+                    }
+                }
+
+                if(!isConnected) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -208,7 +238,7 @@ public class UnityPlayerActivity extends Activity
                             public void onArrive(MqttMessage message) {
                                 //we need to pass image
                                 Log.d(TAG, "message arrived. " + message.toString());
-                                //mUnityPlayer.UnitySendMessage("ChattingManager", "CreateChat", message.toString());
+                                mUnityPlayer.UnitySendMessage("ChattingManager", "CreateChat", message.toString());
                             }
                         });
                         break;
@@ -236,9 +266,9 @@ public class UnityPlayerActivity extends Activity
                                 out.close();
 
                                 out = new ByteArrayOutputStream();
-                                YuvImage yuvImage2 = new YuvImage(recv, ImageFormat.YV12, 1280, 720, null);
+                                YuvImage yuvImage2 = new YuvImage(recv, ImageFormat.YUY2, 1280, 720, null);
                                 yuvImage2.compressToJpeg(new Rect(0, 0, 1280, 720), 50, out);
-                                file = new File(Environment.getExternalStorageDirectory() + "/yv12test.jpeg");
+                                file = new File(Environment.getExternalStorageDirectory() + "/yuv2test.jpeg");
                                 out2 = new FileOutputStream(file);
                                 out2.write(out.toByteArray());
                                 out2.close();
@@ -282,9 +312,9 @@ public class UnityPlayerActivity extends Activity
     {
         mUnityPlayer.quit();
         super.onDestroy();
-        release();
-        int id = android.os.Process.myPid();
-        android.os.Process.killProcess(id);
+        //release();
+        //int id = android.os.Process.myPid();
+        //android.os.Process.killProcess(id);
     }
 
     // Pause Unity
@@ -357,8 +387,38 @@ public class UnityPlayerActivity extends Activity
     // Pass any events not handled by (unfocused) views straight to UnityPlayer
     @Override public boolean onKeyUp(int keyCode, KeyEvent event)     {
         System.out.println("onKeyUp!!" + keyCode);
-        if(keyCode == 4)
-            finish();
+        if(keyCode == 4) {
+            dialog.showProgressDialog();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    NCARApiRequest.NCARApi_Err err = NCARApiRequest.leaveRoom(User.getCurrentUser().getUserEmail(), room.getRoomId());
+                    switch (err) {
+                        case SUCCESS:
+                            release();
+                            finish();
+                            break;
+                        case NETWORK_ERR:
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(UnityPlayerActivity.this, R.string.ncar_network_err, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            break;
+                        case UNKNOWN_ERR:
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(UnityPlayerActivity.this, R.string.ncar_unknown_err, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            break;
+                    }
+                    dialog.hideProgressDialog();
+                }
+            }).start();
+        }
         return mUnityPlayer.injectEvent(event);
     }
     @Override public boolean onKeyDown(int keyCode, KeyEvent event)   { return mUnityPlayer.injectEvent(event); }
