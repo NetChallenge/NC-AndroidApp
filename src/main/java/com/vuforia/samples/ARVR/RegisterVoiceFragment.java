@@ -40,7 +40,7 @@ public class RegisterVoiceFragment extends Fragment implements View.OnClickListe
         rippleView.setIconSize(30);
         rippleView.setOnClickListener(this);
 
-        Renderer currentRenderer = new TimerCircleRippleRenderer(getDefaultRipplePaint(), getDefaultRippleBackgroundPaint(), getButtonPaint(), getArcPaint(), 10000.0, 0.0);
+        Renderer currentRenderer = new TimerCircleRippleRenderer(getDefaultRipplePaint(), getDefaultRippleBackgroundPaint(), getButtonPaint(), getArcPaint(), 100000.0, 0.0);
         if (currentRenderer instanceof TimerCircleRippleRenderer) {
             ((TimerCircleRippleRenderer) currentRenderer).setStrokeWidth(20);
         }
@@ -56,7 +56,7 @@ public class RegisterVoiceFragment extends Fragment implements View.OnClickListe
         rippleView.setOutputFile(audioFile.getAbsolutePath());
         rippleView.setAudioSource(MediaRecorder.AudioSource.MIC);
         rippleView.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        rippleView.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        rippleView.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
 
         completeBtn = view.findViewById(R.id.register_voice_complete);
         completeBtn.setOnClickListener(this);

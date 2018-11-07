@@ -1,6 +1,6 @@
 <resources>
   <string name="app_name">Sign-In Quickstart</string>
-  <string name="title_text">Google Sign-In\nQuickstart</string>
+  <string name="title_text">I SEE\nQuickstart</string>
 
   <!-- Sign-in status messages -->
   <string name="signed_in_fmt">Signed in as: %s</string>

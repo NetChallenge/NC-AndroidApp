@@ -2,6 +2,8 @@ package com.vuforia.samples.network;
 
 import android.util.Log;
 
+import com.vuforia.samples.encoder.AsyncThread;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,7 +14,7 @@ import java.net.Socket;
  * Created by icns on 2018-07-11.
  */
 
-public class SocketClient extends Thread {
+public class SocketClient extends AsyncThread<byte[]> {
     public interface SockListener {
         void onConnect();
         void onRecv(byte[] recv);
@@ -72,13 +74,19 @@ public class SocketClient extends Thread {
     }
 
     //first you need to send size of packet and send packet
-    public synchronized void write(byte[] buf) {
+    private synchronized void write(byte[] buf) {
         try {
             sockOut.write(toBytes(buf.length));
             sockOut.write(buf);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void process(byte[] data) {
+        Log.d(TAG, "send audio data");
+        write(data);
     }
 
     private byte[] toBytes(int i) {
@@ -103,6 +111,7 @@ public class SocketClient extends Thread {
         }
     }
 
+    /*
     @Override
     public void run() {
         int readLen = 0;
@@ -128,4 +137,5 @@ public class SocketClient extends Thread {
             }
         }
     }
+    */
 }

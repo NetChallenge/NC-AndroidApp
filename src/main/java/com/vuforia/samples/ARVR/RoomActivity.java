@@ -27,7 +27,10 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
 
     private FloatingActionMenu fabMenu;
     private FloatingActionButton createBtn;
-    private FloatingActionButton participateBtn;
+    private FloatingActionButton mikeBtn;
+    private boolean isMikeDisabled = false;
+    private FloatingActionButton arBtn;
+    private boolean isARDisabled = false;
     private ImageView imageNotExistImage;
     private TextView imageNotExistText;
     private ImageButton roomEnterBtn;
@@ -41,8 +44,10 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         fabMenu = findViewById(R.id.room_fab_menu);
         createBtn = fabMenu.findViewById(R.id.room_create_btn);
         createBtn.setOnClickListener(this);
-        participateBtn = fabMenu.findViewById(R.id.room_participate_btn);
-        participateBtn.setOnClickListener(this);
+        mikeBtn = fabMenu.findViewById(R.id.room_mike_btn);
+        mikeBtn.setOnClickListener(this);
+        arBtn = fabMenu.findViewById(R.id.room_ar_btn);
+        arBtn.setOnClickListener(this);
         imageNotExistImage = findViewById(R.id.room_not_exist_image);
         imageNotExistText = findViewById(R.id.room_not_exist_text);
         roomEnterBtn = findViewById(R.id.room_enter_btn);
@@ -156,12 +161,14 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run() {
 
-                Pair<NCARApiRequest.NCARApi_Err, Integer> result = NCARApiRequest.enterRoom(User.getCurrentUser().getUserEmail(), room.getRoomId());
+                Pair<NCARApiRequest.NCARApi_Err, Integer> result = NCARApiRequest.enterRoom(User.getCurrentUser().getUserEmail(), room.getRoomId(), User.getCurrentUser().getUserName());
                 switch(result.first) {
                     case SUCCESS:
                         room.getSttOpts().setPort(result.second);
                         User.getCurrentUser().setCurrentRoom(room);
                         Intent intent = new Intent(RoomActivity.this, UnityPlayerActivity.class);
+                        intent.putExtra("audio", isMikeDisabled);
+                        intent.putExtra("ar", isARDisabled);
                         startActivity(intent);
                         break;
                     case ROOM_NOT_FOUND:
@@ -226,7 +233,19 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                             }
                         }).show();
                 break;
-            case R.id.room_participate_btn:
+            case R.id.room_mike_btn:
+                if(!isMikeDisabled) {
+                    mikeBtn.setColorNormal(0x221565CD);
+                    mikeBtn.setColorPressed(0x222272CD);
+                    mikeBtn.setColorRipple(0x2262B2FF);
+                    isMikeDisabled = true;
+                }
+                else {
+                    mikeBtn.setColorNormal(0xFF1565CD);
+                    mikeBtn.setColorPressed(0xFF2272CD);
+                    mikeBtn.setColorRipple(0xFF62B2FF);
+                    isMikeDisabled = false;
+                }
                 /*
                 new MaterialDialog.Builder(this)
                         .title(R.string.room_list_participate_title)
@@ -252,6 +271,20 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                         }).show();*/
                 break;
 
+            case R.id.room_ar_btn:
+                if(!isARDisabled) {
+                    arBtn.setColorNormal(0x221565CD);
+                    arBtn.setColorPressed(0x222272CD);
+                    arBtn.setColorRipple(0x2262B2FF);
+                    isARDisabled = true;
+                }
+                else {
+                    arBtn.setColorNormal(0xFF1565CD);
+                    arBtn.setColorPressed(0xFF2272CD);
+                    arBtn.setColorRipple(0xFF62B2FF);
+                    isARDisabled = false;
+                }
+                break;
             case R.id.room_enter_btn:
                 enterRoom(User.getCurrentUser().getCurrentRoom());
                 break;

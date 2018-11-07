@@ -66,6 +66,22 @@
         app:menu_colorNormal="#1565C0"
         app:menu_colorPressed="#2272CD"
         app:menu_colorRipple="#62B2FF">
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/room_ar_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ar"
+            app:fab_label="AR"
+            style="@style/MenuButtonsSmall"/>
+
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/room_mike_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/mike"
+                app:fab_label="마이크"
+                style="@style/MenuButtonsSmall"/>
+
             <com.github.clans.fab.FloatingActionButton
                 android:id="@+id/room_create_btn"
                 android:layout_width="wrap_content"
@@ -73,7 +89,7 @@
                 android:src="@drawable/plus"
                 app:fab_label="방생성"
                 style="@style/MenuButtonsSmall"/>
-
+            <!--
             <com.github.clans.fab.FloatingActionButton
                 android:id="@+id/room_participate_btn"
                 android:layout_width="wrap_content"
@@ -81,6 +97,7 @@
                 android:src="@drawable/check"
                 app:fab_label="방참여"
                 style="@style/MenuButtonsSmall" />
+                -->
     </com.github.clans.fab.FloatingActionMenu>
 
 </android.support.constraint.ConstraintLayout>

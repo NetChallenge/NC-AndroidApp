@@ -47,7 +47,9 @@ public class NCARApiRequest {
         ALREADY_EXIST
     }
 
-    private static String baseUrl = "http://163.180.117.216:5679";
+    //private static String baseUrl = "http://45.248.74.89:5679";
+    //private static String baseUrl = "http://163.180.117.216:5679";
+    private static String baseUrl = "http://192.168.0.11:5679";
 
     private interface NCARApi {
         @POST("checkIsRegister")
@@ -78,7 +80,7 @@ public class NCARApiRequest {
         Call<Object> createRoom(@Query("email") String email, @Query("name") String name, @Query("title") String roomTitle, @Query("users") String usersJson);
 
         @POST("enterRoom")
-        Call<Object> enterRoom(@Query("email") String email, @Query("room_id") int room_id);
+        Call<Object> enterRoom(@Query("email") String email, @Query("room_id") int room_id, @Query("name") String userName);
 
         @POST("leaveRoom")
         Call<Object> leaveRoom(@Query("email") String email, @Query("room_id") int room_id);
@@ -391,11 +393,11 @@ public class NCARApiRequest {
         }
     }
 
-    public static Pair<NCARApi_Err, Integer> enterRoom(String userEmail, int room_id) {
+    public static Pair<NCARApi_Err, Integer> enterRoom(String userEmail, int room_id, String userName) {
         try {
             NCARApi api = getNCARApi();
 
-            Call<Object> uploadImageCall = api.enterRoom(userEmail, room_id);
+            Call<Object> uploadImageCall = api.enterRoom(userEmail, room_id, userName);
             Response<Object> response = uploadImageCall.execute();
             if(response.code() != 200)
                 return new Pair(NCARApi_Err.UNKNOWN_ERR, null);

@@ -1,6 +1,7 @@
 package com.vuforia.samples.ARVR;
 
 import com.unity3d.player.*;
+import com.vuforia.samples.encoder.AsyncThread;
 import com.vuforia.samples.encoder.AvcEncoder;
 import com.vuforia.samples.encoder.RawAudioOpts;
 import com.vuforia.samples.encoder.RawAudioStream;
@@ -75,13 +76,25 @@ public class UnityPlayerActivity extends Activity
     private LocalSocketServer localSocketServer = new LocalSocketServer();
 
     //dialog
-    NCARProgressDialog dialog = new NCARProgressDialog(this);
+    private NCARProgressDialog dialog = new NCARProgressDialog(this);
+
+    //options
+    private boolean isAudioDisabled = false;
+    private boolean isARDisabled = false;
+
+    //voice latency check
+    private long voiceStartTime = 0;
+    private long voiceEndTime = 0;
+    private long voiceTextArriveTime = 0;
 
     // Setup activity layout
     @Override protected void onCreate(Bundle savedInstanceState)
     {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
+
+        isAudioDisabled = getIntent().getBooleanExtra("audio", false);
+        isARDisabled = getIntent().getBooleanExtra("ar", false);
 
         mUnityPlayer = new UnityPlayer(this);
         setContentView(mUnityPlayer);
@@ -112,7 +125,7 @@ public class UnityPlayerActivity extends Activity
                                     //we need to recv face rectangle
                                     try {
                                         String json = new String(recv, "UTF-8");
-                                        Log.d(TAG, "json : " + json);
+                                        //Log.d(TAG, "json : " + json);
                                     } catch (UnsupportedEncodingException e) {
                                         e.printStackTrace();
                                     }
@@ -149,54 +162,69 @@ public class UnityPlayerActivity extends Activity
                     return;
                 }
 
-                avcEncoder = new AvcEncoder(new AvcEncoder.OnReadListener() {
-                    @Override
-                    public void onRead(byte[] data) {
-                        Log.d(TAG, "avcEncoder Read. size is " + data.length);
-                        byte[] output = new byte[data.length + 1];
-                        output[0] = SEND_MSG.VIDEO.getValue();
-                        System.arraycopy(data, 0, output, 1, data.length);
-                        sockClient.write(output);
-                    }
-                });
-
-                //video initialize
-                if(!avcEncoder.initialize()) {
-                    runOnUiThread(new Runnable() {
+                if(!isARDisabled) {
+                    avcEncoder = new AvcEncoder(new AvcEncoder.OnReadListener() {
                         @Override
-                        public void run() {
-                            Toast.makeText(UnityPlayerActivity.this, R.string.ncar_video_init_err, Toast.LENGTH_LONG).show();
+                        public void onRead(byte[] data) {
+                            //Log.d(TAG, "avcEncoder Read. size is " + data.length);
+                            byte[] output = new byte[data.length + 1];
+                            output[0] = SEND_MSG.VIDEO.getValue();
+                            System.arraycopy(data, 0, output, 1, data.length);
+                            sockClient.putData(output);
                         }
                     });
-                    finish();
-                    return;
+
+                    //video initialize
+                    if (!avcEncoder.initialize()) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(UnityPlayerActivity.this, R.string.ncar_video_init_err, Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        finish();
+                        return;
+                    }
                 }
 
                 //audio initialize
-                rawAudioStream = new RawAudioStream(
-                        RawAudioOpts.getSampleRate(),
-                        RawAudioOpts.getSamplesPerFrame(),
-                        RawAudioOpts.getFramesPerBuffer(),
-                        new RawAudioStream.OnReadListener() {
-                            @Override
-                            public void onRead(ByteBuffer data) {
-                                int len = data.remaining();
-                                byte[] output = new byte[len+1];
-                                output[0] = SEND_MSG.AUDIO.getValue();
-                                data.get(output, 1, len);
-                                sockClient.write(output);
+                if(!isAudioDisabled) {
+                    rawAudioStream = new RawAudioStream(
+                            RawAudioOpts.getSampleRate(),
+                            RawAudioOpts.getSamplesPerFrame(),
+                            RawAudioOpts.getFramesPerBuffer(),
+                            new RawAudioStream.OnReadListener() {
+                                @Override
+                                public void onRead(byte[] data, boolean isSpeaking) {
+                                    byte[] output = new byte[data.length + 2];
+                                    output[0] = SEND_MSG.AUDIO.getValue();
+                                    output[1] = (byte)(isSpeaking ? 1 : 0);
+                                    //Log.d(TAG, "isSpeaking: " + output[1]);
+                                    System.arraycopy(data, 0, output, 2, data.length);
+                                    sockClient.putData(output);
+                                }
+
+                                @Override
+                                public void onVoiceStart() {
+                                    voiceStartTime = System.currentTimeMillis();
+                                }
+
+                                @Override
+                                public void onVoiceEnd() {
+                                    voiceEndTime = System.currentTimeMillis();
+                                }
                             }
-                        }
-                );
-                if(!rawAudioStream.initialize()) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(UnityPlayerActivity.this, R.string.ncar_audio_init_err, Toast.LENGTH_LONG).show();
-                        }
-                    });
-                    finish();
-                    return;
+                    );
+                    if (!rawAudioStream.initialize()) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(UnityPlayerActivity.this, R.string.ncar_audio_init_err, Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        finish();
+                        return;
+                    }
                 }
 
                 //mqtt initialize
@@ -238,7 +266,32 @@ public class UnityPlayerActivity extends Activity
                             public void onArrive(MqttMessage message) {
                                 //we need to pass image
                                 Log.d(TAG, "message arrived. " + message.toString());
+                                voiceTextArriveTime = System.currentTimeMillis();
+
+                                Log.d(TAG, "voice start to arrival:" + String.valueOf(voiceTextArriveTime - voiceStartTime));
+                                Log.d(TAG, "voice end to arrival:" + String.valueOf(voiceTextArriveTime - voiceEndTime));
                                 mUnityPlayer.UnitySendMessage("ChattingManager", "CreateChat", message.toString());
+
+                                /*
+                                if(voiceTextArriveTime - voiceStartTime <= 2000) {
+                                    String[] nameAndContents = message.toString().split(":");
+                                    if(nameAndContents[0] != User.getCurrentUser().getUserName())
+                                        return;
+
+                                    mUnityPlayer.UnitySendMessage("ChattingManager", "CreateChat", message.toString());
+                                    Log.d(TAG, "voice start to arrival:" + String.valueOf(voiceTextArriveTime - voiceStartTime));
+                                    Log.d(TAG, "voice end to arrival:" + String.valueOf(voiceTextArriveTime - voiceEndTime));
+                                }
+                                else {
+                                    String[] nameAndContents = message.toString().split(":");
+                                    if(nameAndContents[0] == User.getCurrentUser().getUserName())
+                                        return;
+
+                                    mUnityPlayer.UnitySendMessage("ChattingManager", "CreateChat", message.toString());
+                                    Log.d(TAG, "voice start to arrival:" + String.valueOf(voiceTextArriveTime - voiceStartTime));
+                                    Log.d(TAG, "voice end to arrival:" + String.valueOf(voiceTextArriveTime - voiceEndTime));
+                                }
+                                */
                             }
                         });
                         break;
@@ -250,7 +303,8 @@ public class UnityPlayerActivity extends Activity
                     boolean isSaved = false;
                     @Override
                     public void onRecv(byte[] recv) {
-                        avcEncoder.putData(recv);
+                        if(!isARDisabled)
+                            avcEncoder.putData(recv);
 
                         /*
                         if(isSaved == false) {
@@ -285,8 +339,10 @@ public class UnityPlayerActivity extends Activity
                 //start all
                 localSocketServer.start();
                 sockClient.start();
-                avcEncoder.start();
-                rawAudioStream.start();
+                if(!isARDisabled)
+                    avcEncoder.start();
+                if(!isAudioDisabled)
+                    rawAudioStream.start();
             }
         }).start();
     }
@@ -294,8 +350,10 @@ public class UnityPlayerActivity extends Activity
     private void release() {
         localSocketServer.setStopThread(true);
         sockClient.close();
-        avcEncoder.close();
-        rawAudioStream.stopStream();
+        if(!isARDisabled)
+            avcEncoder.close();
+        if(!isAudioDisabled)
+            rawAudioStream.stopStream();
     }
 
     @Override protected void onNewIntent(Intent intent)
@@ -386,7 +444,7 @@ public class UnityPlayerActivity extends Activity
 
     // Pass any events not handled by (unfocused) views straight to UnityPlayer
     @Override public boolean onKeyUp(int keyCode, KeyEvent event)     {
-        System.out.println("onKeyUp!!" + keyCode);
+        //System.out.println("onKeyUp!!" + keyCode);
         if(keyCode == 4) {
             dialog.showProgressDialog();
             new Thread(new Runnable() {
